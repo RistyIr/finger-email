@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Générateur d'email - Renouvellement d'hébergement</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 20px;
+    }
+    
+    .form-panel {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      height: fit-content;
+      position: sticky;
+      top: 20px;
+    }
+    
+    .form-panel h2 {
+      margin-bottom: 20px;
+      color: #333;
+      font-size: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #e10600;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: opacity 0.2s;
+    }
+    
+    .btn:hover {
+      opacity: 0.9;
+    }
+    
+    .btn-preview {
+      background-color: #e10600;
+      color: white;
+    }
+    
+    .btn-copy {
+      background-color: #333;
+      color: white;
+    }
+    
+    .preview-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .preview-panel h2 {
+      margin-bottom: 15px;
+      color: #333;
+      font-size: 20px;
+    }
+    
+    #emailPreview {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-height: 600px;
+    }
+    
+    .success-message {
+      display: none;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+    
+    .success-message.show {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-panel {
+        position: relative;
+        top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Formulaire -->
+    <div class="form-panel">
+      <h2>📝 Informations du client</h2>
+      
+      <div class="form-group">
+        <label>Libellé du service</label>
+        <input type="text" id="libelle" value="l'hébergement de votre site web" placeholder="Ex: l'hébergement de votre site web">
+      </div>
+      
+      <div class="form-group">
+        <label>Site web</label>
+        <input type="text" id="site" value="www.example.com" placeholder="Ex: www.example.com">
+      </div>
+      
+      <div class="form-group">
+        <label>Date d'expiration</label>
+        <input type="text" id="date" value="31/12/2024" placeholder="Ex: 31/12/2024">
+      </div>
+      
+      <div class="form-group">
+        <label>Type de service</label>
+        <input type="text" id="service" value="Hébergement Web + Domaine" placeholder="Ex: Hébergement Web + Domaine">
+      </div>
+      
+      <div class="form-group">
+        <label>Durée</label>
+        <input type="text" id="duree" value="1 an" placeholder="Ex: 1 an">
+      </div>
+      
+      <div class="form-group">
+        <label>Prix</label>
+        <input type="text" id="prix" value="150 000 Ar / an" placeholder="Ex: 150 000 Ar / an">
+      </div>
+      
+      <div class="btn-group">
+        <button class="btn btn-preview" onclick="updatePreview()">👁️ Aperçu</button>
+        <button class="btn btn-copy" onclick="selectEmail()">✅ Sélectionner l'email</button>
+      </div>
+      
+      <div class="success-message" id="successMessage">
+        ✅ Email sélectionné ! Faites Ctrl+C pour copier
+      </div>
+    </div>
+    
+    <!-- Aperçu -->
+    <div class="preview-panel">
+      <h2>👀 Aperçu de l'email</h2>
+      <div id="emailPreview"></div>
+    </div>
+  </div>
+
+  <script>
+    // Template HTML de l'email
+    function getEmailTemplate(data) {
+      return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Renouvellement d'hébergement</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, Helvetica, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0"
+               style="background-color:#ffffff; margin:30px 0; border-radius:8px; overflow:hidden;">
+          
+          <!-- HEADER -->
+          <tr>
+            <td style="background-color:black; padding:25px; text-align:center;">
+              <img src="https://fingerdevis.netlify.app/logo.png"
+                   alt="Finger Tech"
+                   width="90"
+                   style="display:block; margin:0 auto 10px;">
+              <p style="margin:0; color:#ffffff; font-size:14px;">
+                Préstataires de services informatiques
+              </p>
+            </td>
+          </tr>
+
+          <!-- CONTENT -->
+          <tr>
+            <td style="padding:30px; color:#333333;">
+              <h2 style="font-size:20px; margin-top:0;">
+                Renouvellement de votre hébergement
+              </h2>
+
+              <p style="font-size:14px; line-height:1.6;">
+                Bonjour,<br><br>
+                Nous vous informons que <strong>${data.libelle}
+                <span style="color:#e10600;">${data.site}</span></strong>
+                arrive prochainement à expiration.
+              </p>
+
+              <p style="font-size:14px; line-height:1.6;">
+                <strong>Date de fin actuelle :</strong>
+                <span style="color:#e10600;"><strong>${data.date}</strong></span><br>
+                Afin d'éviter toute interruption de service (site indisponible,
+                emails bloqués, perte de données), nous vous invitons à procéder
+                au renouvellement de votre hébergement.
+              </p>
+
+              <!-- INFO BOX -->
+              <table width="100%" cellpadding="12" cellspacing="0"
+                     style="background-color:#f9fafb; border:1px solid #e5e7eb;
+                            border-radius:6px; margin:20px 0;">
+                <tr>
+                  <td style="font-size:14px; padding:10px;">
+                    <strong>Site web :</strong> ${data.site}<br>
+                    <strong>Service :</strong> ${data.service}<br>
+                    <strong>Durée :</strong> ${data.duree}<br>
+                    <strong>Expiration actuelle :</strong> ${data.date}<br>
+                    <strong>Prix :</strong> ${data.prix}
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size:14px; line-height:1.6;">
+                Le renouvellement effectué à temps garantit la continuité,
+                la sécurité et la performance de votre site web.
+              </p>
+
+              <!-- BUTTON WHATSAPP -->
+              <table cellpadding="0" cellspacing="0" style="margin:30px auto;">
+                <tr>
+                  <td align="center" style="background-color:#e10600; border-radius:6px;">
+                    <a href="https://wa.me/261348739441"
+                       target="_blank"
+                       style="display:inline-block; padding:14px 28px;
+                              color:#ffffff; text-decoration:none;
+                              font-size:14px; font-weight:bold;">
+                      Renouveler maintenant
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background-color:black; padding:20px;
+                       text-align:center; font-size:12px; color:#666;">
+              📞 +261 34 87 394 41<br><br>
+              📧 sinformatique715@gmail.com<br><br>
+              <a href="https://fingertech.netlify.app/" target="_blank" 
+                   style="color:#666; text-decoration:none;">
+                https://fingertech.netlify.app
+              </a><br><br>
+              © Finger Tech – P49 Soaranokely Ambohijanaka
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+    }
+
+    // Récupérer les données du formulaire
+    function getFormData() {
+      return {
+        libelle: document.getElementById('libelle').value,
+        site: document.getElementById('site').value,
+        date: document.getElementById('date').value,
+        service: document.getElementById('service').value,
+        duree: document.getElementById('duree').value,
+        prix: document.getElementById('prix').value
+      };
+    }
+
+    // Mettre à jour l'aperçu
+    function updatePreview() {
+      const data = getFormData();
+      const html = getEmailTemplate(data);
+      document.getElementById('emailPreview').innerHTML = html;
+    }
+
+    // Sélectionner le contenu de l'email
+    function selectEmail() {
+      const emailPreview = document.getElementById('emailPreview');
+      
+      // Créer une sélection
+      const range = document.createRange();
+      range.selectNodeContents(emailPreview);
+      
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // Afficher le message de succès
+      const successMsg = document.getElementById('successMessage');
+      successMsg.classList.add('show');
+      setTimeout(() => {
+        successMsg.classList.remove('show');
+      }, 3000);
+    }
+
+    // Mettre à jour l'aperçu automatiquement quand on tape
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', updatePreview);
+    });
+
+    // Afficher l'aperçu initial au chargement
+    updatePreview();
+  </script>
+</body>
+</html>
